@@ -3,6 +3,8 @@
 > *Le temps, c'est de l'argent. Period.*
 > Par Loris PEREZ : https://loris-perez.fr
 
+## 👉 [Lancer l'application](https://lperez33.github.io/Mon_Taf_Mon_Pecule/compteur_salaire_taf.html)
+
 Une application web de décompte en temps réel qui te montre exactement combien tu gagnes à chaque seconde que tu passes au taf — et qui te donne les outils pour vérifier ta fiche de paie.
 
 ---
@@ -59,6 +61,7 @@ Exemple pour 1 800 €/mois, 5 jours/semaine, 7h/jour :
 ```
 
 ---
+
 
 ## 🛠️ Stack technique
 
