@@ -1,7 +1,7 @@
 # 💰 Mon Taf, Mon Pécule
 
 > *Le temps, c'est de l'argent. Period.*
-> Par Loris PEREZ : https://loris-perez.fr
+> Par Loris PEREZ : [loris-perez.fr](https://loris-perez.fr)
 
 ## 👉 [Lancer l'application](https://lperez33.github.io/mon-pecule/compteur_salaire_taf.html)
 
