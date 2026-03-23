@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --card: #111111;
+    --border: #222;
+    --green: #00ff87;
+    --yellow: #ffe135;
+    --red: #ff4444;
+    --text: #f0f0f0;
+    --muted: #666;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
+  }
+
+  .app { max-width: 480px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* HEADER */
+  .header { text-align: center; padding: 32px 0 24px; }
+  .header h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .header .tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: #444;
+    letter-spacing: 0.1em;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 4px;
+    border: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .tab.active {
+    background: var(--green);
+    color: #000;
+  }
+
+  /* SCREEN */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* INPUTS */
+  .input-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .input-row:last-child { margin-bottom: 0; }
+  label {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 700;
+    flex-shrink: 0;
+    min-width: 100px;
+  }
+  input[type="number"], input[type="time"] {
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    padding: 10px 14px;
+    flex: 1;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--green); }
+  input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+  /* JOURS */
+  .jours-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; }
+  .jour-btn {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    background: #1a1a1a;
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .jour-btn.selected {
+    background: var(--green);
+    border-color: var(--green);
+    color: #000;
+  }
+
+  /* BTN */
+  .btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-primary { background: var(--green); color: #000; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,255,135,0.3); }
+  .btn-danger { background: #1a1a1a; color: var(--red); border: 1px solid var(--red); margin-top: 8px; font-size: 13px; padding: 12px; }
+
+  /* LIVE SCREEN */
+  .big-money {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--green);
+    text-align: center;
+    line-height: 1;
+    letter-spacing: -2px;
+    padding: 8px 0;
+    transition: all 0.3s;
+  }
+  .big-money.flash { color: var(--yellow); }
+
+  .progress-wrap { margin: 12px 0 4px; }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-family: 'Space Mono', monospace;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #1a1a1a;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--yellow));
+    border-radius: 999px;
+    transition: width 0.5s ease;
+  }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-box {
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .stat-val.green { color: var(--green); }
+  .stat-val.yellow { color: var(--yellow); }
+  .stat-val.red { color: var(--red); }
+  .stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; }
+
+  /* TICKER */
+  .ticker-bar {
+    background: #0d1f15;
+    border: 1px solid #1a3a22;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    text-align: center;
+    margin-bottom: 16px;
+    min-height: 42px;
+  }
+
+  /* RECAP */
+  .recap-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .recap-row:last-child { border-bottom: none; }
+  .recap-label { color: var(--muted); font-size: 13px; }
+  .recap-val { font-family: 'Space Mono', monospace; font-weight: 700; }
+
+  /* TIMER DISPLAY */
+  .timer-display {
+    text-align: center;
+    padding: 12px 0;
+  }
+  .timer-main {
+    font-family: 'Space Mono', monospace;
+    font-size: 36px;
+    color: var(--yellow);
+    letter-spacing: 2px;
+  }
+  .timer-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    font-weight: 700;
+  }
+
+  /* STATUS DOT */
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 6px;
+    animation: blink 1.5s infinite;
+  }
+  .status-dot.live { background: var(--green); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .session-info {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.1em;
+  }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .empty span { font-size: 32px; display: block; margin-bottom: 12px; }
+
+  .per-hour-badge {
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--yellow);
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>💰 Mon Taf, Mon Pécule</h1>
+    <div class="tagline">// le temps, c'est de l'argent. period.</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('config')">⚙️ Config</button>
+    <button class="tab" onclick="switchTab('live')">🔴 Live</button>
+    <button class="tab" onclick="switchTab('recap')">📊 Récap</button>
+  </div>
+
+  <!-- CONFIG SCREEN -->
+  <div class="screen active" id="screen-config">
+
+    <div class="card">
+      <div class="card-label">💶 Salaire mensuel</div>
+      <div class="input-row">
+        <label>Salaire (€)</label>
+        <input type="number" id="salaire" placeholder="1800" min="0" step="10" oninput="saveConfig()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">📅 Tes jours de taf</div>
+      <div class="jours-grid" id="jours-grid">
+        <!-- generated by JS -->
+      </div>
+      <div class="input-row">
+        <label>H/jour</label>
+        <input type="number" id="heures-par-jour" placeholder="7" min="1" max="24" step="0.5" oninput="saveConfig()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">⏱️ Session aujourd'hui</div>
+      <div class="input-row">
+        <label>Début</label>
+        <input type="time" id="heure-debut" oninput="saveConfig()">
+      </div>
+      <div class="input-row">
+        <label>Durée (h)</label>
+        <input type="number" id="heures-session" placeholder="7" min="0" max="24" step="0.5" oninput="saveConfig()">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="lancerLive()">🚀 Lancer le compteur</button>
+
+  </div>
+
+  <!-- LIVE SCREEN -->
+  <div class="screen" id="screen-live">
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="card-label" style="margin:0"><span class="status-dot live" id="status-dot"></span>EN DIRECT</div>
+        <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace" id="live-date"></div>
+      </div>
+
+      <div class="big-money" id="big-money">0,00 €</div>
+      <div class="session-info" id="session-info">session en cours</div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Progression</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticker-bar" id="ticker">💬 Démarrage du compteur...</div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-val yellow" id="stat-restant">--:--</div>
+        <div class="stat-lbl">Reste à tafer</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val green" id="stat-gagné">0,00 €</div>
+        <div class="stat-lbl">Gagné auj.</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-parheure">--</div>
+        <div class="stat-lbl">Par heure</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-parmin">--</div>
+        <div class="stat-lbl">Par minute</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RECAP SCREEN -->
+  <div class="screen" id="screen-recap">
+
+    <div class="card" id="recap-card">
+      <div class="card-label">📋 Récapitulatif du mois</div>
+      <div id="recap-content"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">⚠️ Contrôle fiche de paie</div>
+      <div id="fiche-paie-content"></div>
+    </div>
+
+    <button class="btn btn-danger" onclick="resetTout()">🗑️ Reset tout</button>
+
+  </div>
+
+</div>
+
+<script>
+  const JOURS = ['Lu','Ma','Me','Je','Ve','Sa','Di'];
+  let cfg = {
+    salaire: 0,
+    joursSelectionnes: [0,1,2,3,4],
+    heuresParJour: 7,
+    heureDebut: '09:00',
+    heuresSession: 7
+  };
+  let interval = null;
+  let sessionStart = null;
+
+  // ---- INIT ----
+  function init() {
+    const saved = localStorage.getItem('taf-cfg');
+    if (saved) cfg = { ...cfg, ...JSON.parse(saved) };
+
+    buildJoursGrid();
+    loadInputs();
+    buildRecap();
+
+    // Auto-start if config exists and we're in live tab
+    if (cfg.salaire > 0) updateLive();
+    setInterval(updateLive, 1000);
+    updateRecap();
+  }
+
+  function buildJoursGrid() {
+    const grid = document.getElementById('jours-grid');
+    grid.innerHTML = '';
+    JOURS.forEach((j, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'jour-btn' + (cfg.joursSelectionnes.includes(i) ? ' selected' : '');
+      btn.textContent = j;
+      btn.onclick = () => toggleJour(i, btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  function toggleJour(i, btn) {
+    if (cfg.joursSelectionnes.includes(i)) {
+      cfg.joursSelectionnes = cfg.joursSelectionnes.filter(x => x !== i);
+      btn.classList.remove('selected');
+    } else {
+      cfg.joursSelectionnes.push(i);
+      btn.classList.add('selected');
+    }
+    saveConfig();
+  }
+
+  function loadInputs() {
+    document.getElementById('salaire').value = cfg.salaire || '';
+    document.getElementById('heures-par-jour').value = cfg.heuresParJour || '';
+    document.getElementById('heure-debut').value = cfg.heureDebut || '09:00';
+    document.getElementById('heures-session').value = cfg.heuresSession || '';
+  }
+
+  function saveConfig() {
+    cfg.salaire = parseFloat(document.getElementById('salaire').value) || 0;
+    cfg.heuresParJour = parseFloat(document.getElementById('heures-par-jour').value) || 7;
+    cfg.heureDebut = document.getElementById('heure-debut').value || '09:00';
+    cfg.heuresSession = parseFloat(document.getElementById('heures-session').value) || cfg.heuresParJour;
+    localStorage.setItem('taf-cfg', JSON.stringify(cfg));
+    updateRecap();
+  }
+
+  // ---- TABS ----
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const tabs = ['config','live','recap'];
+    document.querySelectorAll('.tab')[tabs.indexOf(tab)].classList.add('active');
+    document.getElementById('screen-' + tab).classList.add('active');
+    if (tab === 'recap') buildRecap();
+  }
+
+  function lancerLive() {
+    saveConfig();
+    if (cfg.salaire <= 0) { alert('Entre ton salaire d\'abord frérot 💶'); return; }
+    if (cfg.joursSelectionnes.length === 0) { alert('Sélectionne au moins un jour de taf 📅'); return; }
+    switchTab('live');
+  }
+
+  // ---- LIVE ----
+  function updateLive() {
+    if (cfg.salaire <= 0) return;
+
+    const now = new Date();
+    document.getElementById('live-date').textContent = now.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}).toUpperCase();
+
+    const totalHeuresMois = cfg.joursSelectionnes.length * 4.33 * cfg.heuresParJour;
+    const tauxHoraire = cfg.salaire / totalHeuresMois;
+    const tauxMinute = tauxHoraire / 60;
+    const tauxSeconde = tauxMinute / 60;
+
+    // Parse session start
+    const [hh, mm] = cfg.heureDebut.split(':').map(Number);
+    const debutSession = new Date(now);
+    debutSession.setHours(hh, mm, 0, 0);
+
+    const dureeSessionMs = cfg.heuresSession * 3600 * 1000;
+    const finSession = new Date(debutSession.getTime() + dureeSessionMs);
+
+    const ecouléMs = Math.max(0, now - debutSession);
+    const ecoulésec = Math.min(ecouléMs / 1000, cfg.heuresSession * 3600);
+    const gagné = ecoulésec * tauxSeconde;
+
+    // Progress
+    const pct = Math.min(100, (ecoulésec / (cfg.heuresSession * 3600)) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = Math.round(pct) + '%';
+
+    // Big money
+    const moneyEl = document.getElementById('big-money');
+    moneyEl.textContent = fmt(gagné);
+
+    // Remaining
+    const resteMs = Math.max(0, finSession - now);
+    const resteH = Math.floor(resteMs / 3600000);
+    const resteM = Math.floor((resteMs % 3600000) / 60000);
+    const resteS = Math.floor((resteMs % 60000) / 1000);
+    document.getElementById('stat-restant').textContent =
+      resteH > 0 ? `${resteH}h${String(resteM).padStart(2,'0')}` : `${resteM}m${String(resteS).padStart(2,'0')}`;
+    document.getElementById('stat-restant').className = 'stat-val ' + (resteMs === 0 ? 'green' : 'yellow');
+
+    document.getElementById('stat-gagné').textContent = fmt(gagné);
+    document.getElementById('stat-parheure').textContent = fmt(tauxHoraire);
+    document.getElementById('stat-parmin').textContent = fmt(tauxMinute);
+
+    // Session info
+    if (now < debutSession) {
+      document.getElementById('session-info').textContent = `Commence à ${cfg.heureDebut}`;
+      document.getElementById('status-dot').classList.remove('live');
+    } else if (resteMs > 0) {
+      document.getElementById('session-info').textContent = `Fini à ${finSession.getHours()}h${String(finSession.getMinutes()).padStart(2,'0')}`;
+      document.getElementById('status-dot').classList.add('live');
+    } else {
+      document.getElementById('session-info').textContent = `Session terminée ✅ rentre chez toi`;
+      document.getElementById('status-dot').classList.remove('live');
+    }
+
+    // Ticker messages
+    updateTicker(gagné, tauxSeconde, resteMs, pct);
+  }
+
+  const MESSAGES = [
+    g => `+${fmt(g)} déjà en poche frérot 🤑`,
+    g => `Chaque seconde = ${fmt(g/Math.max(1,g/(0.01)))} de plus... nan ça compte`,
+    () => `Le monde est méchant mais toi t'es payé(e) 💪`,
+    (g, ts) => `T'as gagné ${fmt(g)} depuis ce matin. Respect.`,
+    () => `Même si c'est 14 centimes par heure — on voit TOUT ici`,
+    (g, ts, reste) => reste > 0 ? `Plus que ${Math.ceil(reste/60000)} min... accroche-toi` : `LIBÉRÉ(E) ! Rentre chez toi 🏃`,
+    () => `Ta fiche de paie va avoir des comptes à rendre`,
+    (g) => `${fmt(g)} gagnés. Pas mal pour aujourd'hui non ?`,
+  ];
+  let tickerIdx = 0;
+  let lastTick = 0;
+  function updateTicker(g, ts, reste, pct) {
+    const now = Date.now();
+    if (now - lastTick < 4000) return;
+    lastTick = now;
+    const msg = MESSAGES[tickerIdx % MESSAGES.length](g, ts, reste, pct);
+    document.getElementById('ticker').textContent = msg;
+    tickerIdx++;
+  }
+
+  // ---- RECAP ----
+  function buildRecap() {
+    if (cfg.salaire <= 0) {
+      document.getElementById('recap-content').innerHTML = '<div class="empty"><span>📋</span>Entre ton salaire dans la config pour voir ton récap</div>';
+      document.getElementById('fiche-paie-content').innerHTML = '';
+      return;
+    }
+
+    const joursMois = cfg.joursSelectionnes.length * 4.33;
+    const totalHeures = joursMois * cfg.heuresParJour;
+    const tauxHoraire = cfg.salaire / totalHeures;
+    const tauxMinute = tauxHoraire / 60;
+
+    document.getElementById('recap-content').innerHTML = `
+      <div class="recap-row">
+        <span class="recap-label">Jours de taf/semaine</span>
+        <span class="recap-val">${cfg.joursSelectionnes.length}j</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Heures/jour</span>
+        <span class="recap-val">${cfg.heuresParJour}h</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Total heures/mois (≈)</span>
+        <span class="recap-val">${Math.round(totalHeures)}h</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Salaire mensuel</span>
+        <span class="recap-val" style="color:var(--green)">${fmt(cfg.salaire)}</span>
+      </div>
+    `;
+
+    document.getElementById('fiche-paie-content').innerHTML = `
+      <div class="recap-row">
+        <span class="recap-label">Taux horaire brut</span>
+        <span class="recap-val" style="color:var(--yellow)">${fmt(tauxHoraire)}/h</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Par minute travaillée</span>
+        <span class="recap-val">${fmt(tauxMinute)}/min</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Par seconde travaillée</span>
+        <span class="recap-val">${fmt(tauxHoraire/3600)}/sec</span>
+      </div>
+      <div class="recap-row">
+        <span class="recap-label">Une journée de ${cfg.heuresParJour}h vaut</span>
+        <span class="recap-val" style="color:var(--green)">${fmt(tauxHoraire * cfg.heuresParJour)}</span>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:#0d1f15;border-radius:10px;font-size:12px;color:var(--green);line-height:1.6;font-family:'Space Mono',monospace">
+        ✅ Compare avec ta fiche de paie :<br>
+        ${Math.round(totalHeures)}h × ${fmt(tauxHoraire)} = <strong>${fmt(cfg.salaire)}</strong><br>
+        Si ta fiche dit autre chose → tu demandes 👊
+      </div>
+    `;
+  }
+
+  function updateRecap() { buildRecap(); }
+
+  function resetTout() {
+    if (!confirm('Reset tout ? Ton config sera perdu.')) return;
+    localStorage.removeItem('taf-cfg');
+    cfg = { salaire: 0, joursSelectionnes: [0,1,2,3,4], heuresParJour: 7, heureDebut: '09:00', heuresSession: 7 };
+    loadInputs();
+    buildJoursGrid();
+    buildRecap();
+    switchTab('config');
+  }
+
+  function fmt(n) {
+    return n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  init();
+</script>
+</body>
+</html>
