@@ -3,7 +3,7 @@
 > *Le temps, c'est de l'argent. Period.*
 > Par Loris PEREZ : https://loris-perez.fr
 
-## 👉 [Lancer l'application](https://lperez33.github.io/Mon_Taf_Mon_Pecule/compteur_salaire_taf.html)
+## 👉 [Lancer l'application](https://lperez33.github.io/mon-pecule/compteur_salaire_taf.html)
 
 Une application web de décompte en temps réel qui te montre exactement combien tu gagnes à chaque seconde que tu passes au taf — et qui te donne les outils pour vérifier ta fiche de paie.
 
